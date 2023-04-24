@@ -1,0 +1,49 @@
+"""
+from Autodesk.Revit.DB import FilteredElementCollector as Fec
+from Autodesk.Revit.DB import BuiltInCategory as Bic
+
+# Store door instances to variable
+rooms = Fec(doc).\
+        OfCategory(Bic.OST_Rooms).\
+        WhereElementIsNotElementType().ToElements()
+
+#  Print object IDs
+for room in rooms:
+    print(room.Name,":",room.Area,":", room.Id)
+
+"""
+# Import libraries
+from Autodesk.Revit.DB import FilteredElementCollector as Fec
+from Autodesk.Revit.DB import BuiltInCategory as Bic
+
+# Store door instances to variable
+areas = Fec(doc).\
+        OfCategory(Bic.OST_Areas).\
+        WhereElementIsNotElementType().ToElements()
+
+# Create lists with [name, ID, area]
+rentables = []
+gross_building = []
+
+
+"""
+#  Print object IDs
+for area in areas:
+    print(area.AreaScheme.Name, ":", area.Id)
+
+"""
+
+# Put areas in correct list
+for area in areas:
+	if area.AreaScheme.Name == "Rentable":
+		rentables.append((area.Name, format((int(area.Area)/100), ".2f")))
+	elif area.AreaScheme.Name == "Gross Building":
+		gross_building.append((area.Name, format((int(area.Area)/100), ".2f")))
+
+
+
+print("These are the rentables: ", rentables)
+print("These are the Gross buildings: ", gross_building)
+
+print("hello")
+

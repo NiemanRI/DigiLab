@@ -1,0 +1,107 @@
+# Import libraries
+from Autodesk.Revit.DB import FilteredElementCollector as Fec
+from Autodesk.Revit.DB import BuiltInCategory as Bic
+
+
+# GET AREA NAME/M^2 AND XYZ-COORDINATES
+
+# Store Area instances to variable
+areas = Fec(doc).\
+        OfCategory(Bic.OST_Areas).\
+        WhereElementIsNotElementType().ToElements()
+
+# Create lists with [name, ID, area]
+rentables = []
+gross_building = []
+
+#  Print object IDs
+for area in areas:
+    print(area.AreaScheme.Name, ":", area.Id)
+    print(area.Location.Point)
+
+# Put areas in correct list
+for area in areas:
+	if area.AreaScheme.Name == "Rentable":
+		rentables.append([area.Name, format((int(area.Area)/100), ".2f"), area.Location.Point])
+	elif area.AreaScheme.Name == "Gross Building":
+		gross_building.append([area.Name, format((int(area.Area)/100), ".2f"), (area.Location.Point)])
+
+print("These are the rentables: ", rentables)
+print("These are the Gross buildings: ", gross_building)
+
+""""""
+
+# PLACE FAMILIY ON POINT
+
+import clr
+clr.AddReference('RevitAPI')
+from Autodesk.Revit.DB import *
+
+# Get the current Revit document
+doc = __revit__.ActiveUIDocument.Document
+
+# Get the family symbol for the "NRI_GM_VG nummer" family
+families = FilteredElementCollector(doc).OfClass(FamilySymbol).ToElements()
+symbol = None
+for family in families:
+    if family.FamilyName == "NRI_GM_VG nummer":
+        symbol = family
+        break
+if symbol is None:
+    print("Family 'NRI_GM_VG nummer' not found.")
+    sys.exit()
+
+# Get the family parameters for the symbol
+params = symbol.Parameters
+
+# Get the value of a specific parameter
+param_name = "Parameter Name" # Replace with the name of the parameter you want to access
+param = params[param_name]
+value = symbol.get_Parameter(param.Definition).AsDouble()
+
+# Print the value of the parameter to the console
+print("{0}: {1}".format(param_name, value))
+
+"""
+
+tag = Fec(doc).\
+        OfCategory(Bic.OST_Areas).\
+        WhereElementIsNotElementType().ToElements()
+
+import clr
+clr.AddReference('RevitAPI')
+from Autodesk.Revit.DB import *
+from Autodesk.Revit.DB.Architecture import *
+
+# Get the current Revit document
+doc = __revit__.ActiveUIDocument.Document
+
+# Get the selected area element
+area = __revit__.ActiveUIDocument.Selection.PickObject(ObjectType.Element, "Select an area").Element
+
+# Get the location of the area element
+location = area.Location
+
+# Get the center point of the area element
+center_point = location.Point
+
+# Get the family symbol to place
+symbol_name = "Family Name"  # Replace with the name of the family symbol to place
+symbol = None
+collector = FilteredElementCollector(doc).OfClass(FamilySymbol).OfCategory(BuiltInCategory.OST_GenericModel)
+for s in collector:
+    if s.Family.Name == symbol_name:
+        symbol = s
+        break
+
+# If the symbol was found, create an instance of the family at the center point
+if symbol is not None:
+    level = doc.GetElement(area.LevelId)
+    transform = Transform.CreateTranslation(center_point)
+    instance = doc.Create.NewFamilyInstance(center_point, symbol, level, StructuralType.NonStructural)
+    instance.Location.Move(transform.BasisX)
+    instance.Location.Move(transform.BasisY)
+else:
+    print("Could not find family symbol with name: {0}".format(symbol_name))
+    
+"""
